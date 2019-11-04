@@ -17,7 +17,7 @@ class NeuroOptions:
             # Best networks kepts unchanged for the next generation (rate).
             'elitism': 0.2,
             # New random networks for the next generation (rate).
-            'randomBehavior': 0.2,
+            'randomBehaviour': 0.2,
             # Mutation rate on the weights of synapses.
             'mutationRate': 0.1,
             # Interval of the mutation changes on the synapse weight.
@@ -38,11 +38,8 @@ class NeuroOptions:
             self.options[items[0]] = items[1]
 
 
-neuroOptions = NeuroOptions({})
-
-
 class Neuron:
-    def __init__(self,neuroOptions):
+    def __init__(self, neuroOptions):
         self.value = 0
         self.neuroOptions = neuroOptions
         self.weights = []
@@ -171,7 +168,7 @@ class Genome:
 
 
 class Generation:
-    def __init__(self,neuroOptions):
+    def __init__(self, neuroOptions):
         self.genomes = []
         self.neuroOptions = neuroOptions
 
@@ -179,7 +176,7 @@ class Generation:
         # Locate position to insert Genome into.
         # The genomes should remain sorted.
         idx = 0
-        for i in range(self.genomes.length):
+        for i in range(len(self.genomes)):
             # Sort in descending order.
             if self.neuroOptions.options['scoreSort'] < 0:
                 if genome.score > self.genomes[i].score:
@@ -198,18 +195,18 @@ class Generation:
         for nb in range(nbChilds):
             # Deep clone of genome 1.
             data = copy.deepcopy(g1)
-            for i in range(g2.network.weights):
+            for i in range(len(g2.network['weights'])):
                 # Genetic crossover
                 # 0.5 is the crossover factor.
                 # FIXME Really should be a predefined constant.
                 if random.random() <= 0.5:
-                    data.network.weights[i] = g2.network.weights[i]
+                    data.network['weights'][i] = g2.network['weights'][i]
 
             # Perform mutation on some weights.
             mutationRange = self.neuroOptions.options['mutationRange']
-            for i in range(data.network.weights):
+            for i in range(len(data.network['weights'])):
                 if random.random() <= self.neuroOptions.options['mutationRate']:
-                    data.network.weights[i] += mutationRange * \
+                    data.network['weights'][i] += mutationRange * \
                         (random.random() * 2 - 1)
             datas.append(data)
         return datas
@@ -223,17 +220,18 @@ class Generation:
         nbChild = self.neuroOptions.options['nbChild']
 
         for i in range(round(elitism * population)):
-            if len(nexts) < population:
-                # Push a deep copy of ith Genome's Nethwork.
+            if len(nexts) < population and len(self.genomes) > i:
+                # Push a deep copy of its Genome's Network.
                 nexts.append(copy.deepcopy(self.genomes[i].network))
 
-        for i in range(round(randomBehaviour * population)):
-            n = copy.deepcopy(self.genomes[0].network)
-            for k in range(len(n.weights)):
-                n.weights[k] = randomClamped()
+        if len(self.genomes) > 0:
+            for i in range(round(randomBehaviour * population)):
+                n = copy.deepcopy(self.genomes[0].network)
+                for k in range(len(n['weights'])):
+                    n['weights'][k] = randomClamped()
 
-            if len(nexts.length) < population:
-                nexts.append(n)
+                if len(nexts) < population:
+                    nexts.append(n)
 
         max = 0
         while True:
@@ -243,9 +241,9 @@ class Generation:
                     self.genomes[i], self.genomes[max], nbChild if nbChild > 0 else 1)
                 for c in range(len(childs)):
                     nexts.append(childs[c].network)
-                    if nexts.length >= population:
+                    if len(nexts) >= population:
                         # Return once number of children is equal to the
-                        # population by generatino value.
+                        # population by generation value.
                         return nexts
             max += 1
             if max >= len(self.genomes) - 1:
@@ -277,14 +275,14 @@ class Generations:
 
         lastGeneration = self.generations[len(self.generations) - 1]
         gen = lastGeneration.generateNextGeneration()
-        self.generations.append(Generation())
+        self.generations.append(Generation(self.neuroOptions))
         return gen
 
     def addGenome(self, genome):
         # Can't add to a Generation if there are no Generations.
         if len(self.generations) == 0:
             return False
-        self.generations[self.generations.length - 1].addGenome(genome)
+        self.generations[len(self.generations) - 1].addGenome(genome)
 
 
 class Neuroevolution:
@@ -299,40 +297,37 @@ class Neuroevolution:
         networks = []
 
         if len(self.generations.generations) == 0:
-                        # If no Generations, create first.
+            print('If no Generations, create first.')
             networks = self.generations.firstGeneration()
         else:
-            # Otherwise, create next one.
+            print('Otherwise, create next one.')
             networks = self.generations.nextGeneration()
 
-            # Create Networks from the current Generation.
+        # Create Networks from the current Generation.
         nns = []
         for i in range(len(networks)):
             nn = Network(self.neuroOptions)
             nn.setSave(networks[i])
             nns.append(nn)
 
-        gens = self.generations.generations
         if self.neuroOptions.options['lowHistoric']:
             # Remove old Networks.
-            if len(gens) >= 2:
-                genomes = gens[len(gens) - 2].genomes
+            if len(self.generations.generations) >= 2:
+                genomes = self.generations.generations[len(
+                    self.generations.generations) - 2].genomes
                 for i in range(len(genomes)):
                     genomes[i].network = None
 
         historic = self.neuroOptions.options['historic']
         if historic != -1:
             # Remove older generations.
-            if len(gens) > historic + 1:
-                count = len(gens) - (historic + 1)
+            if len(self.generations.generations) > historic + 1:
+                count = len(self.generations.generations) - (historic + 1)
                 while count > 0:
-                    gens.pop(0)
+                    self.generations.generations.pop(0)
                     count -= 1
 
         return nns
 
     def networkScore(self, network, score):
         self.generations.addGenome(Genome(score, network.getSave()))
-
-
-
