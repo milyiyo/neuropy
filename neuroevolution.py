@@ -297,10 +297,10 @@ class Neuroevolution:
         networks = []
 
         if len(self.generations.generations) == 0:
-            print('If no Generations, create first.')
+            # If no Generations, create first.
             networks = self.generations.firstGeneration()
         else:
-            print('Otherwise, create next one.')
+            # Otherwise, create next one.
             networks = self.generations.nextGeneration()
 
         # Create Networks from the current Generation.
