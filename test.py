@@ -96,22 +96,55 @@ neuroevol = ne.Neuroevolution({
     'network': [9, [2], 9],
 })
 
-for network in neuroevol.nextGeneration():
-    board = [0, 0, 0, 0, 0, 0, 0, 0, 0]
 
-    players = [Brutus(1), AI(-1, network)]
-    plays_idx = 0
-    win_player, allow_play = can_play(board)
+for i in range(100+1):
+    nn = neuroevol.nextGeneration()
 
-    while(allow_play):
-        # print_board(board)
-        players[plays_idx].play(board)
-        plays_idx = (plays_idx + 1) % 2
-        win_player, allow_play = can_play(board)
+    count_win_brutus = 0
+    count_win_ai = 0
+    count_win_no_one = 0
+    count_best_score = 0
 
-    print_board(board)
-    print('Winner: ', 'x' if win_player == 1 
-        else 'o' if win_player == -1 
-        else 'No one')
+    for network in nn:
+        score = 0
+        for games in range(30):
+            board = [0, 0, 0, 0, 0, 0, 0, 0, 0]
 
-    print('---------------------')
+            players = [Brutus(1), AI(-1, network)]
+            plays_idx = 0
+            win_player, allow_play = can_play(board)
+
+            while(allow_play):
+                players[plays_idx].play(board)
+                plays_idx = (plays_idx + 1) % 2
+                win_player, allow_play = can_play(board)
+
+            # print_board(board)
+            # print('Winner: ', 'x' if win_player == 1
+            #     else 'o' if win_player == -1
+            #     else 'No one')
+
+            if win_player == -1:
+                score -= 1
+                count_win_ai += 1
+            elif win_player == 1:
+                # score += 1
+                count_win_brutus += 1
+            else:
+                count_win_no_one += 1
+
+            # print('---------------------')
+        final_score = score / \
+            sum([count_win_brutus, count_win_ai, count_win_no_one])
+        neuroevol.networkScore(
+            network, final_score)
+
+        if final_score < count_best_score:
+            count_best_score = final_score
+
+    if i % 10 == 0:
+        print('\n#', i)
+        print('AI:     ', count_win_ai)
+        print('Brutus: ', count_win_brutus)
+        print('None:   ', count_win_no_one)
+        print('Score:  ', abs(count_best_score) * 100, '%')
