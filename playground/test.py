@@ -1,39 +1,4 @@
-import neuroevolution as ne
-import random
-
-
-class Player:
-    def __init__(self, symbol):
-        self.symbol = symbol
-
-    def play(self, board):
-        pass
-
-
-class Brutus(Player):
-    def play(self, board):
-        for i, place in enumerate(board):
-            if place == 0:
-                board[i] = self.symbol
-                break
-
-
-class AI(Player):
-    def __init__(self, symbol, network):
-        self.symbol = symbol
-        self.network = network
-
-    def play(self, board):
-        out = network.compute(board)
-        playable_idxs = [i for i, x in enumerate(board) if x == 0]
-        max = out[playable_idxs[0]]
-        max_idx = playable_idxs[0]
-        for idx in playable_idxs:
-            if out[idx] > max:
-                max = out[idx]
-                max_idx = idx
-        board[max_idx] = self.symbol
-        i = 0
+import Neuroevolution as ne
 
 
 # nn = neuroevol.nextGeneration()
@@ -48,6 +13,8 @@ class AI(Player):
 # [print(n.compute([2,2])) for n in nn]
 # [neuroevol.networkScore(n, random.random()) for n in nn]
 # neuroevol.nextGeneration()
+from playground.AI import AI
+from playground.Brutus import Brutus
 
 
 def player_ai(symbol):
@@ -93,12 +60,15 @@ def can_play(board):
 
 
 neuroevol = ne.Neuroevolution({
-    'network': [9, [2], 9],
+    'network': [9, [3], 9],
 })
 
+ITERATIONS = 101
+GAMES = 30
 
-for i in range(100+1):
-    nn = neuroevol.nextGeneration()
+
+for i in range(ITERATIONS):
+    nn = neuroevol.next_generation()
 
     count_win_brutus = 0
     count_win_ai = 0
@@ -107,7 +77,7 @@ for i in range(100+1):
 
     for network in nn:
         score = 0
-        for games in range(30):
+        for games in range(GAMES):
             board = [0, 0, 0, 0, 0, 0, 0, 0, 0]
 
             players = [Brutus(1), AI(-1, network)]
@@ -136,7 +106,7 @@ for i in range(100+1):
             # print('---------------------')
         final_score = score / \
             sum([count_win_brutus, count_win_ai, count_win_no_one])
-        neuroevol.networkScore(
+        neuroevol.network_score(
             network, final_score)
 
         if final_score < count_best_score:
@@ -147,4 +117,4 @@ for i in range(100+1):
         print('AI:     ', count_win_ai)
         print('Brutus: ', count_win_brutus)
         print('None:   ', count_win_no_one)
-        print('Score:  ', abs(count_best_score) * 100, '%')
+        print('Score:  ', round(abs(count_best_score) * 100), '%')
