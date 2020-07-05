@@ -15,8 +15,8 @@ class NeuroOptions:
             # Logistic activation function
             'activation': sigmoid,
             # Returns a random value between -1 and 1.
-            'randomClamped': lambda: random.random() * 2 - 1,
-            # Perceptron network structure (1 hidden
+            'randomClamped': lambda: random.random(), # * 2 -1,
+            # Perceptron network structure (1 hidden)
             'network': [1, [1], 1],
             # Population by generation.
             'population': 50,
