@@ -8,6 +8,7 @@ class AI(Player):
         self.network = network
 
     def play(self, board):
+        # print('\tPlays AI')
         out = self.network.compute(board)
         playable_idxs = [i for i, x in enumerate(board) if x == 0]
         max = out[playable_idxs[0]]
