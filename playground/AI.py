@@ -17,4 +17,3 @@ class AI(Player):
                 max = out[idx]
                 max_idx = idx
         board[max_idx] = self.symbol
-        i = 0
